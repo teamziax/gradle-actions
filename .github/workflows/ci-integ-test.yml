@@ -13,6 +13,9 @@ concurrency:
   group: integ-tests-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   determine-suite:
     runs-on: ubuntu-latest
