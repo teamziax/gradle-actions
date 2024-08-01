@@ -53,150 +53,20 @@ jobs:
       if: ${{ needs.determine-suite.outputs.suite != 'full' }}
       uses: ./.github/actions/build-dist
 
-  build-scan-publish:
+  caching:
     needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-build-scan-publish.yml
+    uses: ./.github/workflows/suite-integ-test-caching.yml
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
       skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+    secrets: inherit
 
-  cache-cleanup:
+  other:
     needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-cache-cleanup.yml
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.suite}}-${{github.run_number}}-' # Requires a fresh cache entry each run
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  caching-config:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-caching-config.yml
+    uses: ./.github/workflows/suite-integ-test-other.yml
     with:
       runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
       cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
       skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  dependency-graph:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-graph.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  dependency-submission:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-submission.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  dependency-submission-failures:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
-    permissions:
-      contents: write
-    with:
-      runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  develocity-injection:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-inject-develocity.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-    secrets:
-      DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
-
-  provision-gradle-versions:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  restore-configuration-cache:
-    if: ${{ ! github.event.pull_request.head.repo.fork }}
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-    secrets:
-      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-
-  restore-containerized-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
-    with:
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  restore-custom-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-custom-gradle-home.yml
-    with:
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  restore-gradle-home:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-gradle-home.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  restore-java-toolchain:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  sample-kotlin-dsl:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  sample-gradle-plugin:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  toolchain-detection:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-detect-java-toolchains.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
-
-  wrapper-validation:
-    needs: [determine-suite, build-distribution]
-    uses: ./.github/workflows/integ-test-wrapper-validation.yml
-    with:
-      runner-os: '["ubuntu-latest"]'
-      skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+    secrets: inherit

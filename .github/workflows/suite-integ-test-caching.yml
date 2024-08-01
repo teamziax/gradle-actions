@@ -1,0 +1,84 @@
+name: suite-integ-test-caching
+
+on:
+  workflow_call:
+    inputs:
+      runner-os:
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      cache-key-prefix:
+        type: string
+      skip-dist:
+        type: boolean
+        default: false
+
+jobs:
+  cache-cleanup:
+    uses: ./.github/workflows/integ-test-cache-cleanup.yml
+    with:
+      runner-os: ${{ inputs.runner-os }}
+      cache-key-prefix: '${{ inputs.cache-key-prefix}}-${{github.run_number}}-' # Requires a fresh cache entry each run
+      skip-dist: ${{ inputs.skip-dist }}
+
+  caching-config:
+    uses: ./.github/workflows/integ-test-caching-config.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      cache-key-prefix: '${{ inputs.cache-key-prefix }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  restore-configuration-cache:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-restore-configuration-cache.yml
+    with:
+      runner-os: '["ubuntu-latest"]'
+      cache-key-prefix: '${{ inputs.cache-key-prefix }}'
+      skip-dist: ${{ inputs.skip-dist }}
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+  # restore-containerized-gradle-home:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-containerized-gradle-home.yml
+  #   with:
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # restore-custom-gradle-home:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-custom-gradle-home.yml
+  #   with:
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # restore-gradle-home:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-gradle-home.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # restore-java-toolchain:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-restore-java-toolchain.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # sample-kotlin-dsl:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-sample-kotlin-dsl.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # sample-gradle-plugin:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-sample-gradle-plugin.yml
+  #   with:
+  #     runner-os: ${{ inputs.runner-os }}
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}

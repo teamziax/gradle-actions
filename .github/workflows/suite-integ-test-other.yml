@@ -1,0 +1,87 @@
+name: suite-integ-test-other
+
+on:
+  workflow_call:
+    inputs:
+      runner-os:
+        type: string
+        default: '["ubuntu-latest", "windows-latest", "macos-latest"]'
+      cache-key-prefix:
+        type: string
+      skip-dist:
+        type: boolean
+        default: false
+
+jobs:
+  build-scan-publish:
+    uses: ./.github/workflows/integ-test-build-scan-publish.yml
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      cache-key-prefix: '${{ inputs.cache-key-prefix }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  dependency-graph:
+    if: ${{ ! github.event.pull_request.head.repo.fork }}
+    uses: ./.github/workflows/integ-test-dependency-graph.yml
+    permissions:
+      contents: write
+    with:
+      runner-os: '${{ inputs.runner-os }}'
+      cache-key-prefix: '${{ inputs.cache-key-prefix }}'
+      skip-dist: ${{ inputs.skip-dist }}
+
+  # dependency-submission:
+  #   if: ${{ ! github.event.pull_request.head.repo.fork }}
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-dependency-submission.yml
+  #   permissions:
+  #     contents: write
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # dependency-submission-failures:
+  #   if: ${{ ! github.event.pull_request.head.repo.fork }}
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-dependency-submission-failures.yml
+  #   permissions:
+  #     contents: write
+  #   with:
+  #     runner-os: '${{ needs.determine-suite.outputs.runner-os }}'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # develocity-injection:
+  #   if: ${{ ! github.event.pull_request.head.repo.fork }}
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-inject-develocity.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+  #   secrets:
+  #     DEVELOCITY_ACCESS_KEY: ${{ secrets.DV_SOLUTIONS_ACCESS_KEY }}
+
+  # provision-gradle-versions:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-provision-gradle-versions.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # toolchain-detection:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-detect-java-toolchains.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #     cache-key-prefix: '${{ needs.determine-suite.outputs.cache-key-prefix }}-'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
+
+  # wrapper-validation:
+  #   needs: [determine-suite, build-distribution]
+  #   uses: ./.github/workflows/integ-test-wrapper-validation.yml
+  #   with:
+  #     runner-os: '["ubuntu-latest"]'
+  #     skip-dist: ${{ needs.determine-suite.outputs.suite == 'full' }}
