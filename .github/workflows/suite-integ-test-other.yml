@@ -12,6 +12,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+
 jobs:
   build-scan-publish:
     uses: ./.github/workflows/integ-test-build-scan-publish.yml
